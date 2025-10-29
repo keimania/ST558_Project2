@@ -80,3 +80,24 @@ bike_data |>
     )
   )
 ```
+
+## 3. Graphical Summaries
+
+We create six plots.
+
+### Plot 1: Average Bike Rentals per Hour by Season
+
+```{r}
+
+bike_data |>
+  group_by(seasons, hour) |>
+  summarize(avg_rentals = mean(rented_bike_count), .groups = 'drop') |>
+  ggplot(aes(x = hour, y = avg_rentals, color = seasons, group = seasons)) +
+  geom_line(linewidth = 1) +
+  labs(
+    title = "Average Bike Rentals Throughout the Day by Season",
+    x = "Hour of Day",
+    y = "Average Number of Rented Bikes",
+    color = "Season"
+  )
+```
