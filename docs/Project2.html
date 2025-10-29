@@ -3949,10 +3949,100 @@ dbl (10): Rented Bike Count, Hour, Temperature(°C), Humidity(%), Wind speed ...
 </div>
 </div>
 </section>
-<section id="section" class="level2">
-<h2 class="anchored" data-anchor-id="section"></h2>
+<section id="numerical-summaries" class="level2">
+<h2 class="anchored" data-anchor-id="numerical-summaries">2. Numerical Summaries</h2>
+<p>Here we explore the data using numerical tables to understand distributions and relationships.</p>
+<section id="one-way-contingency-tables" class="level3">
+<h3 class="anchored" data-anchor-id="one-way-contingency-tables">One-Way Contingency Tables</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Frequency of observations by Season</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>bike_data <span class="sc">|&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(seasons) <span class="sc">|&gt;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">count =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 2
+  seasons count
+  &lt;fct&gt;   &lt;int&gt;
+1 Spring   2208
+2 Summer   2208
+3 Autumn   2184
+4 Winter   2160</code></pre>
+</div>
+</div>
+</section>
+<section id="two-way-contingency-tables" class="level3">
+<h3 class="anchored" data-anchor-id="two-way-contingency-tables">Two-Way Contingency Tables</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Season and Holiday</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>bike_data <span class="sc">|&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(seasons, holiday) <span class="sc">|&gt;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">count =</span> <span class="fu">n</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by &#39;seasons&#39;. You can override using the
+`.groups` argument.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 3
+# Groups:   seasons [4]
+  seasons holiday    count
+  &lt;fct&gt;   &lt;fct&gt;      &lt;int&gt;
+1 Spring  No Holiday  2136
+2 Spring  Holiday       72
+3 Summer  No Holiday  2160
+4 Summer  Holiday       48
+5 Autumn  No Holiday  2064
+6 Autumn  Holiday      120
+7 Winter  No Holiday  1968
+8 Winter  Holiday      192</code></pre>
+</div>
+</div>
+</section>
+<section id="summaries-of-quantitative-variables" class="level3">
+<h3 class="anchored" data-anchor-id="summaries-of-quantitative-variables">Summaries of Quantitative Variables</h3>
+<p>Here, we calculate summary statistics (mean, median, standard deviation) for quantitative variables, grouped by the seasons and holiday variable.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>bike_data <span class="sc">|&gt;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(seasons, holiday) <span class="sc">|&gt;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">across</span>(</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">where</span>(is.numeric),</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">list</span>(</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">mean =</span> <span class="sc">~</span> <span class="fu">mean</span>(.x, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">median =</span> <span class="sc">~</span> <span class="fu">median</span>(.x, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">sd =</span> <span class="sc">~</span> <span class="fu">sd</span>(.x, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>      ),</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>      <span class="at">.names =</span> <span class="st">&quot;{.col}_{.fn}&quot;</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by &#39;seasons&#39;. You can override using the
+`.groups` argument.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 29
+# Groups:   seasons [4]
+  seasons holiday    rented_bike_count_mean rented_bike_count_median
+  &lt;fct&gt;   &lt;fct&gt;                       &lt;dbl&gt;                    &lt;dbl&gt;
+1 Spring  No Holiday                   733.                     586.
+2 Spring  Holiday                      635.                     366.
+3 Summer  No Holiday                  1034.                     904.
+4 Summer  Holiday                     1022.                     925 
+5 Autumn  No Holiday                   823.                     768 
+6 Autumn  Holiday                      758.                     632 
+7 Winter  No Holiday                   232.                     212 
+8 Winter  Holiday                      157.                     138 
+# ℹ 25 more variables: rented_bike_count_sd &lt;dbl&gt;, temperature_c_mean &lt;dbl&gt;,
+#   temperature_c_median &lt;dbl&gt;, temperature_c_sd &lt;dbl&gt;,
+#   humidity_percent_mean &lt;dbl&gt;, humidity_percent_median &lt;dbl&gt;,
+#   humidity_percent_sd &lt;dbl&gt;, wind_speed_m_s_mean &lt;dbl&gt;,
+#   wind_speed_m_s_median &lt;dbl&gt;, wind_speed_m_s_sd &lt;dbl&gt;,
+#   visibility_10m_mean &lt;dbl&gt;, visibility_10m_median &lt;dbl&gt;,
+#   visibility_10m_sd &lt;dbl&gt;, dew_point_temperature_c_mean &lt;dbl&gt;, …</code></pre>
+</div>
+</div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

@@ -39,4 +39,44 @@ bike_data <- bike_data_raw |>
 head(bike_data)
 ```
 
-## 
+## 2. Numerical Summaries
+
+Here we explore the data using numerical tables to understand distributions and relationships.
+
+### One-Way Contingency Tables
+
+```{r}
+# Frequency of observations by Season
+bike_data |>
+  group_by(seasons) |>
+  summarize(count = n())
+```
+
+### Two-Way Contingency Tables
+
+```{r}
+# Season and Holiday
+bike_data |>
+  group_by(seasons, holiday) |>
+  summarize(count = n())
+```
+
+### Summaries of Quantitative Variables
+
+Here, we calculate summary statistics (mean, median, standard deviation) for quantitative variables, grouped by the seasons and holiday variable.
+
+```{r}
+bike_data |>
+  group_by(seasons, holiday) |>
+  summarize(
+    across(
+      where(is.numeric),
+      list(
+        mean = ~ mean(.x, na.rm = TRUE),
+        median = ~ median(.x, na.rm = TRUE),
+        sd = ~ sd(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    )
+  )
+```
