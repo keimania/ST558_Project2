@@ -125,3 +125,27 @@ ggplot(bike_data, aes(x = hour, y = rented_bike_count, fill = holiday)) +
     y = "Rented Bike Count"
   )
 ```
+
+### Plot 4: Rentals vs. Wind Speed by Holiday Status
+
+```{r}
+ggplot(bike_data, aes(x = wind_speed_m_s, y = rented_bike_count, color = holiday)) +
+  geom_jitter(width = 0.2, alpha = 0.3) +
+  labs(
+    title = "Bike Rentals vs Wind Speed",
+    x = "Wind Speed (m/s)",
+    y = "Rented Bike Count"
+  )
+```
+
+### Plot 5: Density of Humidity by Functioning Day
+
+```{r}
+ggplot(bike_data, aes(x = humidity_percent, fill = functioning_day)) +
+  geom_density(alpha = 0.5) +
+  labs(
+    title = "Distribution of Humidity by Functioning Day Status",
+    x = "Humidity (%)",
+    y = "Density"
+  )
+```
