@@ -1,0 +1,42 @@
+---
+title: "Project 2: Seoul Bike Sharing Data Exploration"
+author: "Jamin Goo"
+format: 
+  html:
+    self-contained: true
+editor: visual
+---
+
+## 1. Data Loading and Preparation
+
+First, we load the necessary libraries and the dataset. The dataset is 'Seoul Bike Sharing Data'.
+
+We'll also clean up the column names for easier use and convert categorical variables into factors with more descriptive labels.
+
+```{r}
+
+# Load libraries
+library(tidyverse)
+library(lubridate)
+library(knitr)
+
+# Load data
+bike_data_raw <- read_csv("./data/SeoulBikeData.csv", locale = locale(encoding = "latin1"))
+
+bike_data_raw
+
+# Clean and prepare data
+bike_data <- bike_data_raw |>
+  janitor::clean_names() |>
+  mutate(
+    date = dmy(date),
+    seasons = factor(seasons, levels = c("Spring", "Summer", "Autumn", "Winter")),
+    holiday = factor(holiday, levels = c("No Holiday", "Holiday")),
+    functioning_day = factor(functioning_day, levels = c("Yes", "No")),
+    hour = factor(hour)
+  )
+
+head(bike_data)
+```
+
+## 
