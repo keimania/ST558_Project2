@@ -88,7 +88,6 @@ We create six plots.
 ### Plot 1: Average Bike Rentals per Hour by Season
 
 ```{r}
-
 bike_data |>
   group_by(seasons, hour) |>
   summarize(avg_rentals = mean(rented_bike_count), .groups = 'drop') |>
@@ -99,5 +98,30 @@ bike_data |>
     x = "Hour of Day",
     y = "Average Number of Rented Bikes",
     color = "Season"
+  )
+```
+
+### Plot 2: Bike Rentals vs. Temperature with Faceting
+
+```{r}
+ggplot(bike_data, aes(x = temperature_c, y = rented_bike_count, color = seasons)) +
+  geom_point(alpha = 0.3) +
+  facet_wrap(~seasons) +
+  labs(
+    title = "Bike Rentals vs Temperature by Season",
+    x = "Temperature (°C)",
+    y = "Rented Bike Count"
+  )
+```
+
+### Plot 3: Distribution of Bike Rentals on Holidays vs. Non-Holidays
+
+```{r}
+ggplot(bike_data, aes(x = hour, y = rented_bike_count, fill = holiday)) +
+  geom_boxplot() +
+  labs(
+    title = "Bike Rental Distribution by Hour: Holiday vs Non-Holiday",
+    x = "Hour of Day",
+    y = "Rented Bike Count"
   )
 ```
