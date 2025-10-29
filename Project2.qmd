@@ -149,3 +149,34 @@ ggplot(bike_data, aes(x = humidity_percent, fill = functioning_day)) +
     y = "Density"
   )
 ```
+
+### Plot 6: Correlation Heatmap
+
+```{r}
+# Select only numeric variables for correlation matrix
+numeric_vars <- bike_data |>
+  select(where(is.numeric))
+
+# Calculate correlation
+cor_matrix <- cor(numeric_vars)
+
+# Convert to long format for ggplot
+cor_data <- as.data.frame(cor_matrix) |>
+  rownames_to_column("var1") |>
+  pivot_longer(-var1, names_to = "var2", values_to = "correlation")
+
+cor_data
+
+# Create the heatmap
+ggplot(cor_data, aes(x = var1, y = var2, fill = correlation)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1, 1)) +
+  labs(
+    title = "Correlation Heatmap of Numeric Variables",
+    x = "",
+    y = ""
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8)
+  )
+```
