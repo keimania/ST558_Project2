@@ -3,6 +3,8 @@
 library(shiny)
 library(tidyverse)
 library(lubridate)
+library(DT)
+library(shinycssloaders)
 library(janitor)
 
 # Load and prepare the dataset
@@ -57,6 +59,47 @@ ui <- fluidPage(
     
     # --- Main Panel for Outputs ---
     mainPanel(
+      # Use tabsetPanel to create the required tabs
+      tabsetPanel(
+        id = "main_tabs",
+        
+        # --- Tab 1: About ---
+        tabPanel("About",
+                 h3("About This Application"),
+                 p("This application allows you to interactively explore data about the public bicycle sharing system in Seoul, South Korea."),
+                 h4("Data Source"),
+                 p("The dataset used in this app is 'the Seoul Bike Sharing Demand Prediction' in Kaggle. This dataset is originally from 'Seoul Bike Sharing Demand Data Set' from the UCI Machine Learning Repository. It contains hourly counts of rented bikes from 2017 to 2018, along with corresponding weather data and holiday information."),
+                 a(href="https://www.kaggle.com/datasets/saurabhshahane/seoul-bike-sharing-demand-prediction", "Click here for more data information.", target="_blank"),
+                 
+                 h4("The purpose of the sidebar and each tab"),
+                 p(strong("Filtering Controls (Sidebar):"), " Use the dropdown menus and sliders on the left to subset the data. You must click the 'Apply Filters' button to update the visualizations and tables."),
+                 p(strong("Data Download Tab:"), " View the filtered data in a table and download it as a CSV file."),
+                 p(strong("Data Exploration Tab:"), " Generate custom plots and numerical summaries from the filtered data."),
+                 img(src = "https://www.bikeseoul.com/img/main/main_visual.png",
+                     alt = "Seoul Bike Main Visual",
+                     style = "width: 100%; max-width: 600px; 
+                                   display: block; margin-left: auto; 
+                                   margin-right: auto; margin-bottom: 20px;
+                                   border-radius: 8px;")
+        ),
+        
+        # --- Tab 2: Data Download ---
+        tabPanel("Data Download",
+                 h4("Filtered Data"),
+                 # Download button
+                 downloadButton("download_data", "Download Filtered Data (.csv)"),
+                 hr(),
+                 # Data table output
+                 shinycssloaders::withSpinner(
+                   DT::dataTableOutput("data_table")
+                 )
+        ),
+        
+        # --- Tab 3: Data Exploration ---
+        # --- Data Exploration Tab ---
+        tabPanel("Data Exploration"
+        )
+      )
     )
   )
 )
