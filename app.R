@@ -1,5 +1,4 @@
 # 1. SETUP
-
 library(shiny)
 library(tidyverse)
 library(lubridate)
@@ -8,7 +7,8 @@ library(shinycssloaders)
 library(janitor)
 
 # Load and prepare the dataset
-
+# NOTE: Assumes "SeoulBikeData.csv" is in a folder named "data"
+# (./data/SeoulBikeData.csv)
 bike_data_raw <- read_csv("./data/SeoulBikeData.csv", locale = locale(encoding = "latin1"))
 
 # Clean and prepare data
@@ -23,8 +23,10 @@ bike_data <- bike_data_raw |>
   )
 
 # Identify categorical and numeric variables for selectors
-categorical_vars <- c("seasons", "holiday", "functioning_day")
+categorical_vars <- c("seasons", "holiday", "functioning_day", "hour")
 numeric_vars <- bike_data |> select(where(is.numeric)) |> names()
+# Exclude 'hour' from numeric_vars if it's already categorical
+numeric_vars <- setdiff(numeric_vars, "hour")
 
 
 # 2. USER INTERFACE (UI)
@@ -78,9 +80,9 @@ ui <- fluidPage(
                  img(src = "https://www.bikeseoul.com/img/main/main_visual.png",
                      alt = "Seoul Bike Main Visual",
                      style = "width: 100%; max-width: 600px; 
-                                   display: block; margin-left: auto; 
-                                   margin-right: auto; margin-bottom: 20px;
-                                   border-radius: 8px;")
+                              display: block; margin-left: auto; 
+                              margin-right: auto; margin-bottom: 20px;
+                              border-radius: 8px;")
         ),
         
         # --- Tab 2: Data Download ---
@@ -96,8 +98,32 @@ ui <- fluidPage(
         ),
         
         # --- Tab 3: Data Exploration ---
-        # --- Data Exploration Tab ---
-        tabPanel("Data Exploration"
+        tabPanel("Data Exploration",
+                 h3("Explore Summaries and Visualizations"),
+                 p("Create plots and tables from the filtered data."),
+                 tabsetPanel(
+                   # --- Plotting Sub-Tab ---
+                   tabPanel("Plots",
+                            fluidRow(
+                              column(4, 
+                                     selectInput("plot_type", "Choose Plot Type:", 
+                                                 choices = c("Scatter Plot", "Boxplot", "Line Plot (by Hour)", "Density Plot", "Correlation Heatmap"))
+                              ),
+                              # Dynamic UI for plot controls
+                              uiOutput("plot_controls_ui")
+                            ),
+                            plotOutput("explore_plot") |> withSpinner(color="#0dc5c1")
+                   ),
+                   # --- Numerical Summaries Sub-Tab ---
+                   tabPanel("Numerical Summaries",
+                            selectInput("summary_type", "Choose Summary Type:", 
+                                        choices = c("One-Way Contingency Table", "Two-Way Contingency Table", "Summary Statistics by Group")),
+                            # UI that appears conditionally based on summary type
+                            uiOutput("summary_controls_ui"),
+                            h4("Summary Output"),
+                            verbatimTextOutput("summary_output") |> withSpinner(color="#0dc5c1")
+                   )
+                 )
         )
       )
     )
