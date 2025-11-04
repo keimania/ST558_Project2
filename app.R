@@ -6,6 +6,7 @@ library(DT)
 library(shinycssloaders)
 library(janitor)
 
+
 # Load and prepare the dataset
 # NOTE: Assumes "SeoulBikeData.csv" is in a folder named "data" (./data/SeoulBikeData.csv)
 bike_data_raw <- read_csv("./data/SeoulBikeData.csv", locale = locale(encoding = "latin1"))
@@ -99,7 +100,6 @@ ui <- fluidPage(
         # --- Tab 3: Data Exploration ---
         tabPanel("Data Exploration",
                  h3("Explore Summaries and Visualizations"),
-                 p("Create plots and tables from the filtered data."),
                  tabsetPanel(
                    # --- Plotting Sub-Tab ---
                    tabPanel("Plots",
@@ -194,6 +194,136 @@ server <- function(input, output, session) {
       write.csv(filtered_data(), file, row.names = FALSE)
     }
   )
+  
+  # --- Data Exploration Tab Outputs ---
+  output$plot_controls_ui <- renderUI({
+    req(input$plot_type)
+    
+    if (input$plot_type == "Scatter Plot") {
+      # For plots like Plot 2 & 4
+      tagList(
+        column(4, selectInput("plot_x_var_num", "X-axis (Numeric):", choices = numeric_vars, selected = "temperature_c")),
+        column(4, selectInput("plot_y_var_num", "Y-axis (Numeric):", choices = numeric_vars, selected = "rented_bike_count")),
+        column(4, selectInput("plot_color_cat", "Color (Categorical):", choices = c("None", categorical_vars), selected = "seasons")),
+        column(4, selectInput("plot_facet_cat", "Facet (Categorical):", choices = c("None", categorical_vars), selected = "None"))
+      )
+    } else if (input$plot_type == "Boxplot") {
+      # For plots like Plot 3
+      tagList(
+        column(4, selectInput("plot_x_var_cat", "X-axis (Categorical):", choices = categorical_vars, selected = "hour")),
+        column(4, selectInput("plot_y_var_num", "Y-axis (Numeric):", choices = numeric_vars, selected = "rented_bike_count")),
+        column(4, selectInput("plot_fill_cat", "Fill (Categorical):", choices = c("None", categorical_vars), selected = "holiday"))
+      )
+    } else if (input$plot_type == "Line Plot (by Hour)") {
+      # For plots like Plot 1
+      tagList(
+        column(4, selectInput("plot_y_var_num", "Y-axis (Numeric):", choices = numeric_vars, selected = "rented_bike_count")),
+        column(4, selectInput("plot_color_cat", "Color (Categorical):", choices = c("None", categorical_vars), selected = "seasons"))
+      )
+    } else if (input$plot_type == "Density Plot") {
+      # For plots like Plot 5
+      tagList(
+        column(4, selectInput("plot_x_var_num", "X-axis (Numeric):", choices = numeric_vars, selected = "humidity_percent")),
+        column(4, selectInput("plot_fill_cat", "Fill (Categorical):", choices = c("None", categorical_vars), selected = "functioning_day"))
+      )
+    } else if (input$plot_type == "Correlation Heatmap") {
+      # For plots like Plot 6 - No additional controls needed
+      NULL
+    }
+  })
+  
+  # --- Plotting Sub-Tab (Plot Output) ---
+  output$explore_plot <- renderPlot({
+    data_to_plot <- filtered_data()
+    req(input$plot_type)
+    
+    p <- NULL # Initialize plot object
+    
+    if (input$plot_type == "Scatter Plot") {
+      req(input$plot_x_var_num, input$plot_y_var_num, input$plot_color_cat, input$plot_facet_cat)
+      
+      p <- ggplot(data_to_plot, aes(x = .data[[input$plot_x_var_num]], y = .data[[input$plot_y_var_num]])) +
+        geom_point(alpha = 0.4) +
+        labs(title = paste(input$plot_y_var_num, "vs.", input$plot_x_var_num),
+             x = input$plot_x_var_num, y = input$plot_y_var_num)
+      
+      if (input$plot_color_cat != "None") {
+        p <- p + aes(color = .data[[input$plot_color_cat]]) + labs(color = input$plot_color_cat)
+      }
+      if (input$plot_facet_cat != "None") {
+        p <- p + facet_wrap(vars(.data[[input$plot_facet_cat]]))
+      }
+      
+    } else if (input$plot_type == "Boxplot") {
+      req(input$plot_x_var_cat, input$plot_y_var_num, input$plot_fill_cat)
+      
+      p <- ggplot(data_to_plot, aes(x = .data[[input$plot_x_var_cat]], y = .data[[input$plot_y_var_num]])) +
+        geom_boxplot() +
+        labs(title = paste("Distribution of", input$plot_y_var_num, "by", input$plot_x_var_cat),
+             x = input$plot_x_var_cat, y = input$plot_y_var_num)
+      
+      if (input$plot_fill_cat != "None") {
+        p <- p + aes(fill = .data[[input$plot_fill_cat]]) + labs(fill = input$plot_fill_cat)
+      }
+      
+    } else if (input$plot_type == "Line Plot (by Hour)") {
+      req(input$plot_y_var_num, input$plot_color_cat)
+      
+      # Summarize data just like in the static file
+      plot_data_summarized <- data_to_plot |>
+        mutate(hour_numeric = as.numeric(as.character(hour))) |>
+        group_by(hour_numeric)
+      
+      if (input$plot_color_cat != "None") {
+        plot_data_summarized <- plot_data_summarized |> group_by(.data[[input$plot_color_cat]], .add = TRUE)
+      }
+      
+      plot_data_summarized <- plot_data_summarized |>
+        summarise(avg_y = mean(.data[[input$plot_y_var_num]], na.rm = TRUE), .groups = "drop")
+      
+      p <- ggplot(plot_data_summarized, aes(x = hour_numeric, y = avg_y)) +
+        geom_line(linewidth = 1) +
+        labs(title = paste("Average", input$plot_y_var_num, "by Hour"),
+             x = "Hour of Day", y = paste("Average", input$plot_y_var_num))
+      
+      if (input$plot_color_cat != "None") {
+        p <- p + aes(color = .data[[input$plot_color_cat]], group = .data[[input$plot_color_cat]]) +
+          labs(color = input$plot_color_cat)
+      } else {
+        p <- p + aes(group = 1) # Add group=1 for a single line
+      }
+      
+    } else if (input$plot_type == "Density Plot") {
+      req(input$plot_x_var_num, input$plot_fill_cat)
+      
+      p <- ggplot(data_to_plot, aes(x = .data[[input$plot_x_var_num]])) +
+        geom_density(alpha = 0.5) +
+        labs(title = paste("Density of", input$plot_x_var_num), x = input$plot_x_var_num)
+      
+      if (input$plot_fill_cat != "None") {
+        p <- p + aes(fill = .data[[input$plot_fill_cat]]) + labs(fill = input$plot_fill_cat)
+      }
+      
+    } else if (input$plot_type == "Correlation Heatmap") {
+      # Prepare data for heatmap
+      numeric_vars_filtered <- data_to_plot |> select(where(is.numeric))
+      cor_matrix <- cor(numeric_vars_filtered, use = "complete.obs")
+      cor_data <- as.data.frame(cor_matrix) |>
+        rownames_to_column("var1") |>
+        pivot_longer(-var1, names_to = "var2", values_to = "correlation")
+      
+      p <- ggplot(cor_data, aes(x = var1, y = var2, fill = correlation)) +
+        geom_tile() +
+        scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1, 1), na.value = "grey50") +
+        labs(title = "Correlation Heatmap of Numeric Variables", x = "", y = "", fill = "Correlation") +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+    }
+    
+    if (!is.null(p)) {
+      print(p + theme_minimal()) # Apply theme and print
+    }
+    
+  })
 }
 
 # 4. RUN THE APPLICATION
