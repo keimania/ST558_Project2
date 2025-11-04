@@ -7,8 +7,7 @@ library(shinycssloaders)
 library(janitor)
 
 # Load and prepare the dataset
-# NOTE: Assumes "SeoulBikeData.csv" is in a folder named "data"
-# (./data/SeoulBikeData.csv)
+# NOTE: Assumes "SeoulBikeData.csv" is in a folder named "data" (./data/SeoulBikeData.csv)
 bike_data_raw <- read_csv("./data/SeoulBikeData.csv", locale = locale(encoding = "latin1"))
 
 # Clean and prepare data
@@ -178,6 +177,23 @@ server <- function(input, output, session) {
     return(data)
     
   }, ignoreNULL = FALSE)
+  
+  # --- Data Download Tab Outputs ---
+  
+  # Render the data table
+  output$data_table <- DT::renderDataTable({
+    DT::datatable(filtered_data(), options = list(scrollX = TRUE, pageLength = 10))
+  })
+  
+  # Handle the data download
+  output$download_data <- downloadHandler(
+    filename = function() {
+      paste("filtered_bike_data-", Sys.Date(), ".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(filtered_data(), file, row.names = FALSE)
+    }
+  )
 }
 
 # 4. RUN THE APPLICATION
