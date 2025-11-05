@@ -5,7 +5,7 @@ account: jamingoo
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 15963527
-bundleId: 11130723
+bundleId: 11132487
 url: https://jamingoo.shinyapps.io/st558_project2/
 version: 1
 asMultiple: FALSE

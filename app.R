@@ -324,6 +324,77 @@ server <- function(input, output, session) {
     }
     
   })
+  
+  # --- Numerical Summaries Sub-Tab ---
+  output$summary_controls_ui <- renderUI({
+    req(input$summary_type)
+    
+    if (input$summary_type == "One-Way Contingency Table") {
+      selectInput("summary_var1", "Select Categorical Variable:", choices = categorical_vars)
+      
+    } else if (input$summary_type == "Two-Way Contingency Table") {
+      tagList(
+        selectInput("summary_var1", "First Categorical Variable:", choices = categorical_vars, selected = "seasons"),
+        # Add "None" option
+        selectInput("summary_var2", "Second Categorical Variable:", choices = c("None", categorical_vars), selected = "holiday")
+      )
+      
+    } else if (input$summary_type == "Summary Statistics by Group") {
+      tagList(
+        selectInput("summary_group_var1", "First Grouping Variable:", choices = categorical_vars, selected = "seasons"),
+        # Add "None" option
+        selectInput("summary_group_var2", "Second Grouping Variable:", choices = c("None", categorical_vars), selected = "holiday"),
+        selectInput("summary_numeric_var", "Numeric Variable to Summarize:", choices = numeric_vars, selected = "rented_bike_count")
+      )
+    }
+  })
+  
+  # --- Numerical Summaries Sub-Tab (Output) ---
+  output$summary_output <- renderPrint({
+    data_to_summarize <- filtered_data()
+    req(input$summary_type)
+    
+    if (input$summary_type == "One-Way Contingency Table") {
+      req(input$summary_var1)
+      print(table(data_to_summarize[[input$summary_var1]]))
+      
+    } else if (input$summary_type == "Two-Way Contingency Table") {
+      req(input$summary_var1, input$summary_var2)
+      
+      if (input$summary_var2 == "None") {
+        # If "None" is selected, just do a one-way table
+        print(table(data_to_summarize[[input$summary_var1]]))
+      } else {
+        print(table(data_to_summarize[[input$summary_var1]], data_to_summarize[[input$summary_var2]]))
+      }
+      
+    } else if (input$summary_type == "Summary Statistics by Group") {
+      req(input$summary_group_var1, input$summary_numeric_var)
+      
+      grouped_data <- data_to_summarize
+      
+      # Add first group
+      grouped_data <- grouped_data |> group_by(.data[[input$summary_group_var1]])
+      
+      # Add second group if selected
+      if (input$summary_group_var2 != "None") {
+        grouped_data <- grouped_data |> group_by(.data[[input$summary_group_var2]], .add = TRUE)
+      }
+      
+      # Summarize
+      grouped_data |>
+        summarise(
+          count = n(),
+          mean = mean(.data[[input$summary_numeric_var]], na.rm = TRUE),
+          sd = sd(.data[[input$summary_numeric_var]], na.rm = TRUE),
+          min = min(.data[[input$summary_numeric_var]], na.rm = TRUE),
+          median = median(.data[[input$summary_numeric_var]], na.rm = TRUE),
+          max = max(.data[[input$summary_numeric_var]], na.rm = TRUE),
+          .groups = "drop"
+        ) |>
+        print()
+    }
+  })
 }
 
 # 4. RUN THE APPLICATION
